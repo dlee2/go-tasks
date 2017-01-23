@@ -69,7 +69,7 @@ func GetTasks(username, status, category string) (types.Context, error) {
     var rows *sql.Rows
 
     basicSQL := `select t.id, title, content, created_date, priority
-                from task t, status s, user u where u.username=? and u.id=t.user_id `
+                from task t, status s, user u where u.username=? and u.id=t.user_id and s.id=t.task_status_id`
     if category == "" {
         switch status {
             case "pending":
@@ -153,7 +153,7 @@ func GetCategoryIDByName(username string, category string) int {
 }
 
 func TrashTask(username string, id int) error {
-    err := TaskQuery("update task set task_status_id=?,last_modified_at=datetime() where user_id=(select id from user where username=?) and id=?", taskStatus["DELETED"], username, id)
+    err := TaskQuery("update task set task_status_id='3',last_modified_at=datetime() where user_id=(select id from user where username=?) and id=?", username, id)
     return err
 }
 
