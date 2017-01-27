@@ -1,7 +1,7 @@
 package types
 
 type Task struct {
-    ID      int
+    Id      int
     Title   string
     Content string
     Created string

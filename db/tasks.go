@@ -37,7 +37,7 @@ func (db Database) prepare(q string) (stmt *sql.Stmt) {
     return stmt
 }
 
-func (db Database) query(q string, args ...interface{}) (rows *sql.Rows) {
+func (db Database) Query(q string, args ...interface{}) (rows *sql.Rows) {
     rows, err := db.db.Query(q, args...)
     if err != nil {
         log.Println(err)
@@ -61,13 +61,14 @@ func Close() {
 
 // Retrieve the tasks
 func GetTasks(username, status, category string) (types.Context, error) {
-    log.Println("getting tasks for ", username)
-    var tasks []types.Task
-    var task types.Task
     var context types.Context
     var getTaskSQL string
     var rows *sql.Rows
+    var tasks []types.Task
+    var task types.Task
 
+
+    log.Println("getting tasks for ", username)
     basicSQL := `select t.id, title, content, created_date, priority
                 from task t, status s, user u where u.username=? and u.id=t.user_id and s.id=t.task_status_id`
     if category == "" {
@@ -94,7 +95,7 @@ func GetTasks(username, status, category string) (types.Context, error) {
     defer rows.Close()
     for rows.Next() {
         task = types.Task{}
-        err = rows.Scan(&task.ID, &task.Title, &task.Content, &task.Created, &task.Priority)
+        err = rows.Scan(&task.Id, &task.Title, &task.Content, &task.Created, &task.Priority)
 
         taskCompleted := 0
         totalTasks := 0
@@ -116,10 +117,39 @@ func GetTasks(username, status, category string) (types.Context, error) {
     return context, nil
 }
 
+func GetTaskById(username string, id int) (types.Context, error) {
+    var context types.Context
+    var err error
+    var rows *sql.Rows
+    var task types.Task
+    var tasks []types.Task
+
+
+    log.Println("Getting Task")
+
+    userID, err := GetUserID(username)
+    if err != nil {
+        log.Println("Error getting username")
+    }
+
+    rows = database.Query("select id, title, content, priority from task where user_id=? and id=?", userID, id)
+
+    defer rows.Close()
+    for rows.Next() {
+        err = rows.Scan(&task.Id, &task.Title, &task.Content, &task.Priority)
+        tasks = append(tasks, task)
+    }
+
+    context = types.Context{Tasks: tasks}
+
+    return context, nil
+}
+
 
 func AddTask(title, content, category, username string, priority, hide int) error {
-    log.Println("AddTask: started function")
     var err error
+
+    log.Println("AddTask: started function")
 
     userID, err := GetUserID(username)
     if err != nil && (title != "" || content != "") {
@@ -139,9 +169,10 @@ func AddTask(title, content, category, username string, priority, hide int) erro
 
 func GetCategoryIDByName(username string, category string) int {
     var categoryID int
+
     getTaskSQL := "select c.id from category c , user u where u.id = c.user_id and name=? and u.username=?"
 
-    rows := database.query(getTaskSQL, category, username)
+    rows := database.Query(getTaskSQL, category, username)
     defer rows.Close()
     if rows.Next() {
         err := rows.Scan(&categoryID)
@@ -154,6 +185,11 @@ func GetCategoryIDByName(username string, category string) int {
 
 func TrashTask(username string, id int) error {
     err := TaskQuery("update task set task_status_id='3',last_modified_at=datetime() where user_id=(select id from user where username=?) and id=?", username, id)
+    return err
+}
+
+func EditTask(content, username, title string, id int) error {
+    err := TaskQuery("update task set content=?, title = ? last_modified_at=datetime() where user_id=(select id from user where username=? and id=?)", content, title, username, id)
     return err
 }
 

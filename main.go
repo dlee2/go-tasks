@@ -38,7 +38,7 @@ func main() {
     // http.handleFunc("/delete/", DeleteTask)
     // http.handleFunc("/deleted/", ShowDeletedTasks)
     http.HandleFunc("/trash/", views.RequiresLogin(views.TrashTaskFunc))
-    // http.handleFunc("/edit/", EditTask)
+    http.HandleFunc("/edit/", views.RequiresLogin(views.EditTaskFunc))
     // http.handleFunc("/completed/", ShowCompletedTasks)
     // http.handleFunc("/restore/", RestoreTask)
     // http.handleFunc("/add/", AddTask)
@@ -49,9 +49,9 @@ func main() {
     // http.handleFunc("/admin", HandleAdmin)
     // http.handleFunc("/add_user", PostAddUser)
     // http.handleFunc("/change", PostChange)
-    
+
     http.HandleFunc("/", views.RequiresLogin(views.ShowAllTasksFunc))
-    
+
 
     http.Handle("/static/", http.FileServer(http.Dir("public")))
     PORT:= values.ServerPort

@@ -15,7 +15,7 @@
                         <input type="text" name="title" class="form-control" id="add-note-title" placeholder="Title" />
                         <input class="hidden" name="CSRFToken" value="{{.CSRFToken}}" />
                     </div>
-                    <div class="form-group">
+                    <div class="form-group">≈
 
                         <textarea class="form-control" name="content" id="add-note-content" placeholder="Content" rows="10" ></textarea>
                         <a id="toggleAddFileGrp">Add File</a>
@@ -30,7 +30,7 @@
                         <br>
                         <input type="checkbox" name="hide" value="1" id="hideChk"> Hide from timeline
                     </div>
-                   
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
@@ -42,18 +42,18 @@
 </div>
 
 <div class="timeline">
-    {{ if .Tasks}} {{range $key, $value := .Tasks}}
+    {{if .Tasks}} {{range $key, $value := .Tasks}}
     <div class="note" id="{{$value.ID}}">
-        <p class="noteHeading ">{{ $value.Title}}
-        </p> <span class="toggle glyphicon glyphicon-resize-full"></span>
+        <p class="noteHeading ">{{$value.Title}}</p>
+        <p>{{$value.Content}}</p>
 
-        <span class="noteContent">           
+        <span class="noteContent">
                     <div class="comment">
                         <form method="POST" action="/add-comment/">
                         <textarea rows="2" cols="75" name="commentText" placeholder="Add Comment"></textarea>
                         <input type="text" class="hidden" name="taskID" value="{{$value.ID}}">
                         <input type="submit" value="Comment" class="btn btn-primary" />
-                        </form> 
+                        </form>
                     </div>
                  </div>
         </span>

@@ -80,7 +80,7 @@ func ShowAllTasksFunc(w http.ResponseWriter, r *http.Request) {
             log.Println("Rendering template")
             homeTemplate.Execute(w, context)
 
-        } 
+        }
     }
 }
 
@@ -172,7 +172,7 @@ func TrashTaskFunc(w http.ResponseWriter, r *http.Request) {
     if r.Method == "GET" {
         id, err := strconv.Atoi(r.URL.Path[len("/trash/"):])
         if err != nil {
-            log.Println("TrashFunc", err)
+            log.Println("TrashFunc ", err)
         } else {
             username := sessions.GetUserName(r)
             err := db.TrashTask(username, id)
@@ -184,6 +184,63 @@ func TrashTaskFunc(w http.ResponseWriter, r *http.Request) {
         }
     }
 }
+
+func EditTaskFunc(w http.ResponseWriter, r *http.Request) {
+
+    if r.Method == "GET" {
+        log.Println("Rendering Edit template")
+        id, err := strconv.Atoi(r.URL.Path[len("/edit/"):])
+
+        if err != nil {
+            log.Println(err)
+            http.Redirect(w, r, "/", http.StatusBadRequest)
+        }
+
+        username := sessions.GetUserName(r)
+        context, err := db.GetTaskById(username, id)
+        if err != nil {
+            log.Println("Error fetching task ?", id)
+        }
+
+        editTemplate.Execute(w, context)
+    }
+
+func UpdateTaskFunc(w, http.ResponseWriter, r *http.Request) {
+    if r.Method != "POST" {
+        http.Redirect(w, r, "/", http.StatusFound)
+    } else {
+        id, err := strconv.Atoi(r.URL.Path[len("/edit/"):])
+        if err != nil {
+            log.Println("EditTaskFunc ", err)
+        } else {
+
+            title := template.HTMLEscapeString(r.Form.Get("title"))
+            content := template.HTMLEscapeString(r.Form.Get("content"))
+            formToken := template.HTMLEscapeString(r.Form.Get("CSRFToken"))
+            cookie, _ := r.Cookie("csrftoken")
+
+            if (formToken == cookie.Value) {
+                username := sessions.GetUserName(r)
+                truth := db.EditTask(content, username, title, id)
+
+                if truth != nil {
+                    message = "Error editing task"
+                    log.Println("error adding task to the db")
+                } else {
+                    message = "Task edited"
+                    log.Println("Edited task sent to db")
+                }
+
+                http.Redirect(w, r, "/", http.StatusFound)
+
+            } else {
+                log.Fatal("CSRF mismatch")
+                http.Redirect(w, r, "/", http.StatusFound)
+            }
+        }
+    }
+}
+
 
 func UploadedFileHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method == "GET" {
